@@ -1,19 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-// Rota GET: Para listar clientes
-router.get('/', (req, res) => {
-    res.json({ message: "Esta rota vai listar todos os clientes no futuro!" });
-});
+// Importa o Controller 
+const clientsController = require('../controllers/clients.controller.js');
 
-// Rota POST: Para cadastrar um novo cliente
-router.post('/', (req, res) => {
-    const clientData = req.body;
-    
-    res.json({ 
-        message: "Cliente recebido com sucesso!", 
-        data: clientData 
-    });
-});
+// Rota GET: Chama a função que lista os clientes
+router.get('/', clientsController.listClients);
+
+// Rota POST: Chama a função que cria um novo cliente
+router.post('/', clientsController.createClient);
 
 module.exports = router;

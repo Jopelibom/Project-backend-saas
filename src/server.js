@@ -1,30 +1,46 @@
-// Importa o Express que instalamos
 const express = require('express');
-
-// IMPORTANTE: Importa o arquivo de rotas que você criou
 const clientsRoutes = require('./routes/clients.routes.js'); 
+const connectDB = require('./database/database.js'); 
 
-// Inicializa o aplicativo
 const app = express();
-
-// Define a porta onde o servidor vai rodar
 const PORT = 3000;
 
-// Middleware essencial: diz ao Express para entender requisições em formato JSON
 app.use(express.json());
 
-// Primeira Rota de Teste (Método GET) na URL raiz
 app.get('/', (req, res) => {
     res.json({ 
         status: 'Sucesso!',
-        mensagem: 'O servidor do SaaS está rodando perfeitamente!' 
+        message: 'O servidor do SaaS está rodando perfeitamente!' 
     });
 });
 
-// IMPORTANTE: Diz ao Express: "Toda vez que a URL começar com /clients, use este arquivo de rotas"
 app.use('/clients', clientsRoutes);
 
-// Liga o servidor na porta definida
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta http://localhost:${PORT}`);
-});
+// Função que inicia o banco e depois liga o servidor
+async function startServer() {
+    try {
+        const db = await connectDB();
+        
+        // Cria a tabela "clients" caso ela não exista
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS clients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                phone TEXT
+            )
+        `);
+        console.log("📦 Banco de dados conectado e tabelas prontas!");
+
+        // Liga o servidor só depois que o banco estiver pronto
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor rodando na porta http://localhost:${PORT}`);
+        });
+
+    } catch (error) {
+        console.error("❌ Erro ao iniciar o servidor:", error);
+    }
+}
+
+// Executa a função
+startServer();
