@@ -1,6 +1,9 @@
 const express = require('express');
-const clientsRoutes = require('./routes/clients.routes.js'); 
 const connectDB = require('./database/database.js'); 
+
+// 1. Importações das Rotas
+const clientsRoutes = require('./routes/clients.routes.js'); 
+const servicesRoutes = require('./routes/services.routes.js');
 
 const app = express();
 const PORT = 3000;
@@ -8,20 +11,19 @@ const PORT = 3000;
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.json({ 
-        status: 'Sucesso!',
-        message: 'O servidor do SaaS está rodando perfeitamente!' 
-    });
+    res.json({ status: 'Sucesso!', message: 'O servidor do SaaS está rodando perfeitamente!' });
 });
 
+// 2. Uso das Rotas
 app.use('/clients', clientsRoutes);
+app.use('/services', servicesRoutes);
 
-// Função que inicia o banco e depois liga o servidor
+// Função que inicia o banco e o servidor
 async function startServer() {
     try {
         const db = await connectDB();
         
-        // Cria a tabela "clients" caso ela não exista
+        // Tabela de Clientes
         await db.exec(`
             CREATE TABLE IF NOT EXISTS clients (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,9 +32,19 @@ async function startServer() {
                 phone TEXT
             )
         `);
+
+        // 3. NOVA Tabela de Serviços
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS services (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                price REAL NOT NULL,
+                duration INTEGER NOT NULL
+            )
+        `);
+
         console.log("📦 Banco de dados conectado e tabelas prontas!");
 
-        // Liga o servidor só depois que o banco estiver pronto
         app.listen(PORT, () => {
             console.log(`🚀 Servidor rodando na porta http://localhost:${PORT}`);
         });
@@ -42,5 +54,4 @@ async function startServer() {
     }
 }
 
-// Executa a função
 startServer();
