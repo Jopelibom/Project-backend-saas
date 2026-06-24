@@ -4,6 +4,7 @@ const connectDB = require('./database/database.js');
 // 1. Importações das Rotas
 const clientsRoutes = require('./routes/clients.routes.js'); 
 const servicesRoutes = require('./routes/services.routes.js');
+const usersRoutes = require('./routes/users.routes.js'); 
 
 const app = express();
 const PORT = 3000;
@@ -17,12 +18,23 @@ app.get('/', (req, res) => {
 // 2. Uso das Rotas
 app.use('/clients', clientsRoutes);
 app.use('/services', servicesRoutes);
+app.use('/users', usersRoutes); // <-- Avisando o Express da nova rota de usuários
 
 // Função que inicia o banco e o servidor
 async function startServer() {
     try {
         const db = await connectDB();
         
+        // NOVA Tabela de Usuários (Para o dono do negócio acessar o sistema)
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        `);
+
         // Tabela de Clientes
         await db.exec(`
             CREATE TABLE IF NOT EXISTS clients (
@@ -33,7 +45,7 @@ async function startServer() {
             )
         `);
 
-        // 3. NOVA Tabela de Serviços
+        // Tabela de Serviços
         await db.exec(`
             CREATE TABLE IF NOT EXISTS services (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
